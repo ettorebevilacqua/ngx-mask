@@ -1,8 +1,8 @@
-export function CustomComponent(annotation: any) {
+/*export function CustomComponent(annotation: any) {
     return function (target: Function) {
       var parentTarget = Object.getPrototypeOf(target.prototype).constructor;
       var parentAnnotations = Reflect.getMetadata('annotations', parentTarget);
-  
+
       var parentAnnotation = parentAnnotations[0];
       Object.keys(parentAnnotation).forEach(key => {
         if (isPresent(parentAnnotation[key])) {
@@ -17,9 +17,9 @@ export function CustomComponent(annotation: any) {
           }
         }
       });
-  
+
       var metadata = new Component(annotation);
-  
+
       Reflect.defineMetadata('annotations', [ metadata ], target);
     }
-  }
+} */

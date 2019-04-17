@@ -252,8 +252,6 @@ export class MaskService extends MaskApplierService {
         return new RegExp(specialCharactersForRemove.map((item: string) => `\\${item}`).join('|'), 'gi');
     }
 
-
-
     private _checkSymbols(result: string): string | number | undefined | null {
         if ('dot_separator.2' === this.maskExpression && this.isNumberValue) {
             // tslint:disable-next-line:max-line-length

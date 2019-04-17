@@ -23,7 +23,7 @@ export class AppComponent {
     public formSecureInput: FormControl;
     public formNumber: FormControl;
 
-    public strPattern =  new RegExp('^\d*(\.\d{0,2})?$');
+    public strPattern: RegExp = new RegExp('^\d*(\.\d{0,2})?$');
 
     public pattern: pattern = {
         P: {
@@ -32,7 +32,7 @@ export class AppComponent {
     };
 
     public numberOrStringFormModel: SN = '';
-    public numberModel: SN = 11.3344;
+    public numberModel: SN = 11.334;
     public clearIfNotMatchModel: SN = '';
     public formModelDate: SN = '';
     public secureMask: SN = '';
@@ -81,7 +81,7 @@ export class AppComponent {
         // tslint:disable-next-line
         this.form1.valueChanges.subscribe((x: any) => console.log('Value', x));
 
-       // this.formNumber.setValidators(Validators.max(88));
+        // this.formNumber.setValidators(Validators.max(88));
     }
 }
 

@@ -50,8 +50,9 @@ export class MaskApplierService {
         if (inputValue === undefined || inputValue === null || maskExpression === undefined) {
             return '';
         }
-        const listMaskExpression = maskExpression.split(' ');
-        const findMaskExpression = (val: string) => listMaskExpression.find(str => str.startsWith(val));
+        const listMaskExpression: string[] = maskExpression.split(' ');
+        const findMaskExpression: (arg1: string) => string | undefined =
+            (val: string) => listMaskExpression.find((str: string) => str.startsWith(val));
         let cursor: number = 0;
         let result: string = ``;
         let multi: boolean = false;
@@ -75,8 +76,8 @@ export class MaskApplierService {
             }
             const precision: number = this.getPrecision(listMaskExpression);
             let strForSep: string;
-            if (!isNaN(this.readAsNumber(inputValue))){
-                inputValue = this.minMax(this.min, this.max, inputValue); 
+            if (!isNaN(this.readAsNumber(inputValue))) {
+                inputValue = this.minMax(this.min, this.max, inputValue);
             }
 
             if (findMaskExpression('dot_separator')) {
@@ -133,8 +134,6 @@ export class MaskApplierService {
                 inputValue = this.checkPerc(inputValueNumber);
             }
 
-
-
             const commaShift: number = result.indexOf(',') - inputValue.indexOf(',');
             const shiftStep: number = result.length - inputValue.length;
 
@@ -159,8 +158,6 @@ export class MaskApplierService {
             } else {
                 this._shift.clear();
             }
-
-
 
         } else {
             for (
@@ -351,6 +348,13 @@ export class MaskApplierService {
         );
     }
 
+    protected readAsNumber(val: string): number {
+
+        return val.indexOf(',') !== -1 && val.indexOf(',') === val.lastIndexOf(',') ?
+            Number(val.replace(',', '.')) : Number(val);
+
+    }
+
     private separator = (str: string, char: string, decimalChar: string, precision: number) => {
         str += '';
         const x: string[] = str.split(decimalChar);
@@ -372,16 +376,16 @@ export class MaskApplierService {
         if (isNaN(this.readAsNumber(str))) {
             return str;
         }
-        const val =this.readAsNumber(str);
+        const val: number = this.readAsNumber(str);
 
         str = max === null || val <= max ? str : (max as number).toString();
         str = min === null || val >= min ? str : (min as number).toString();
         return str;
     };
 
-    private getPrecision = (listMaskExpression: Array<string>): number => {
-        const maskExpression: string = listMaskExpression.find((maskExpression: string) =>
-            maskExpression.split('.').length > 1) as string;
+    private getPrecision = (listMaskExpression: string[]): number => {
+        const maskExpression: string = listMaskExpression.find((maskExpr: string) =>
+            maskExpr.split('.').length > 1) as string;
         if (maskExpression) {
             const x: string[] = maskExpression.split('.');
             if (x.length > 1) {
@@ -412,14 +416,6 @@ export class MaskApplierService {
         return inputValue;
     };
 
-
-    private readAsNumber(val: string) {
-
-        return val.indexOf(',') !== -1 && val.indexOf(',') === val.lastIndexOf(',') ?
-            Number(val.replace(',', '.')) : Number(val);
-
-    }
-
     private _checkInput(str: string): string {
         return str
             .split('')
@@ -434,13 +430,12 @@ export class MaskApplierService {
         return '099.099.099.099';
     }
 
-    private checkPerc(inputValue: number) {
+    private checkPerc(inputValue: number): string {
         if (isNaN(inputValue)) {
             return '';
-
         }
-        const min = this.min || 0;
-        const max = this.max || 100;
+        const min: number = this.min || 0;
+        const max: number = this.max || 100;
         return this.minMax(min, max, inputValue.toString()).toString();
     }
 
