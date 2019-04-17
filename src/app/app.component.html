@@ -40,6 +40,44 @@
       </div>
     </div>
   </div>
+
+
+  <div class="container">
+    <div class="row">
+      <div class="col-12">
+        <div class="mat-card-wr">
+          <mat-card>
+            <mat-card-header>
+              <mat-card-title>etto  case</mat-card-title>
+              <mat-card-subtitle>number</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+              <br>
+              <div class="flex-row">
+                <div class="flex-cell">
+                  <mat-form-field>
+                    <input matInput max="2300" min="5" placeholder="number" mask="dot_separator.5" sufix="%" [(ngModel)]="numberModel"
+                      [formControl]="formNumber" decimal="2">
+                    <mat-hint> <b>Mask:</b> "00/00/0000" </mat-hint>
+                  </mat-form-field>
+                </div>
+                <div class="flex-cell">
+                  <p><b>NgModel:</b> {{ numberModel ? numberModel: 'Empty' }}</p>
+                  <p><b>FormControl:</b> {{ formNumber.value ? (formNumber.value * 1) + 5.22: 'Empty' }}</p>
+                </div>
+              </div>
+              <div class="flex-cell">
+                error 
+                {{formNumber.errors | json}}
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<!-- 
   <div class="container">
     <div class="row">
       <div class="col-12">
@@ -244,14 +282,14 @@
               <div class="flex-row">
                 <div class="flex-cell">
                   <mat-form-field>
-                    <input matInput placeholder="Percent valid mask" mask="percent" sufix="%" [formControl]="percent">
+                    <input matInput placeholder="Percent valid mask" mask="percent.5" sufix="%" [formControl]="percent">
                     <mat-hint><b>Mask:</b>percent</mat-hint>
                   </mat-form-field>
                 </div>
                 <div class="flex-cell">
                   <p><b>FormControl:</b> {{ percent.value ? percent.value: 'Empty' }}</p>
-                  <!-- <p><b>NgModel:</b> {{ clearIfNotMatchModel ? clearIfNotMatchModel: 'Empty' }}</p> -->
-                </div>
+                   <p><b>NgModel:</b> {{ percent.value ? percent.value: 'Empty' }}</p> 
+                 </div>
               </div>
             </mat-card-content>
           </mat-card>
@@ -274,7 +312,7 @@
               <div class="flex-row">
                 <div class="flex-cell-padding">
                   <mat-form-field>
-                    <input matInput placeholder="Phone number" mask="(000) 000-0000" prefix="+75" [formControl]="form" [showMaskTyped]="true"
+                    <input matInput placeholder="Phone number"  mask="(000) 000-0000" [formControl]="form"
                       [(ngModel)]="dateModel">
                     <mat-hint><b>Mask: </b>+7 (000) 000 00 00</mat-hint>
                   </mat-form-field>
@@ -367,7 +405,7 @@
               <div class="flex-row">
                 <div class="flex-cell-padding">
                   <mat-form-field>
-                    <input matInput placeholder="Type number or string" mask="00*.00" [formControl]="numberOrStringForm"
+                    <input matInput placeholder="Type number or string" mask="00*.00"  [formControl]="numberOrStringForm"
                       [(ngModel)]="numberOrStringFormModel">
                     <mat-hint><b>Mask: </b>000.00</mat-hint>
                   </mat-form-field>
@@ -486,8 +524,8 @@
               <div class="flex-row">
                 <div class="flex-cell-padding">
                   <mat-form-field>
-                    <input matInput placeholder="Separator" [dropSpecialCharacters]="true" mask="dot_separator.2"
-                      [formControl]="dotPrecisionSeparatorForm" [(ngModel)]="dotPrecisionSeparatorFormModel">
+                    <input matInput placeholder="Separator" [dropSpecialCharacters]="true" mask="dot_separator.2" 
+                      [formControl]="dotPrecisionSeparatorForm" [(ngModel)]="dotPrecisionSeparatorFormModel" >
                     <mat-hint><b>Mask: </b>dot_separator.2</mat-hint>
                   </mat-form-field>
                 </div>
@@ -501,7 +539,7 @@
                 <div class="flex-cell-padding">
                   <mat-form-field>
                     <input matInput placeholder="Separator" [dropSpecialCharacters]="true"
-                      [dropSpecialCharacters]="[',']" mask="comma_separator.2"
+                      [dropSpecialCharacters]="[',']" mask="comma_separator.2" 
                       [formControl]="commaPrecisionSeparatorForm" [(ngModel)]="commaPrecisionSeparatorFormModel">
                     <mat-hint><b>Mask: </b>comma_separator.2</mat-hint>
                   </mat-form-field>
@@ -531,7 +569,7 @@
               <div class="flex-row">
                 <div class="flex-cell-padding">
                   <mat-form-field>
-                    <input matInput placeholder="Separator" mask="comma_separator.0"
+                    <input matInput placeholder="Separator"  mask="comma_separator.0"
                       [formControl]="commaZeroPrecisionSeparatorForm"
                       [(ngModel)]="commaZeroPrecisionSeparatorFormModel">
                     <mat-hint><b>Mask: </b>comma_separator.0</mat-hint>
@@ -574,6 +612,8 @@
       </div>
     </div>
   </div>
+
+  -->
   <div class="container">
     <div class="row">
       <div class="col-12">
@@ -593,4 +633,4 @@
       </div>
     </div>
   </div>
-</mat-sidenav-container>
+</mat-sidenav-container>  

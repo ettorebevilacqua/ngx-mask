@@ -1,11 +1,12 @@
-import { Component } from '@angular/core';
-import { FormControl } from '@angular/forms';
+import { Component, Input } from '@angular/core';
+import { FormControl, Validators } from '@angular/forms';
 type SN = string | number;
 @Component({
     selector: 'app-root',
-    templateUrl: './app.component.html'
+    templateUrl: './app.component.html',
 })
 export class AppComponent {
+    public mask: string = '';
     public phone: number = 123456789;
     public customMaska: [string, pattern];
 
@@ -20,14 +21,18 @@ export class AppComponent {
     public separatorForm: FormControl;
     public percent: FormControl;
     public formSecureInput: FormControl;
+    public formNumber: FormControl;
+
+    public strPattern =  new RegExp('^\d*(\.\d{0,2})?$');
 
     public pattern: pattern = {
         P: {
-            pattern: new RegExp('\\d')
-        }
+            pattern: new RegExp('\\d'),
+        },
     };
 
     public numberOrStringFormModel: SN = '';
+    public numberModel: SN = 11.3344;
     public clearIfNotMatchModel: SN = '';
     public formModelDate: SN = '';
     public secureMask: SN = '';
@@ -39,10 +44,10 @@ export class AppComponent {
     public repeatFormModel!: SN;
     public separatorFormModel!: SN;
     public dotSeparatorFormModel!: SN;
-    public dotPrecisionSeparatorFormModel!: SN;
+    public dotPrecisionSeparatorFormModel: SN = '';
     public dotZeroPrecisionSeparatorFormModel!: SN;
     public commaSeparatorFormModel!: SN;
-    public commaPrecisionSeparatorFormModel!: SN;
+    public commaPrecisionSeparatorFormModel: SN = '';
     public commaZeroPrecisionSeparatorFormModel!: SN;
     public dotSeparatorForm!: FormControl;
     public dotPrecisionSeparatorForm!: FormControl;
@@ -63,14 +68,20 @@ export class AppComponent {
         this.repeatForm = new FormControl('');
         this.separatorForm = new FormControl('');
         this.dotSeparatorForm = new FormControl('');
-        this.dotPrecisionSeparatorForm = new FormControl('');
+        this.dotPrecisionSeparatorForm = new FormControl(0);
         this.dotZeroPrecisionSeparatorForm = new FormControl('');
         this.commaSeparatorForm = new FormControl('');
-        this.commaPrecisionSeparatorForm = new FormControl('');
+        this.commaPrecisionSeparatorForm = new FormControl(0);
         this.commaZeroPrecisionSeparatorForm = new FormControl('');
         this.percent = new FormControl('');
+        this.formNumber = new FormControl('');
 
         this.customMaska = ['PPP-PPP-PPP', this.pattern];
+
+        // tslint:disable-next-line
+        this.form1.valueChanges.subscribe((x: any) => console.log('Value', x));
+
+       // this.formNumber.setValidators(Validators.max(88));
     }
 }
 

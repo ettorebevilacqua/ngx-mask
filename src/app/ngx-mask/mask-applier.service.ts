@@ -15,6 +15,10 @@ export class MaskApplierService {
     public prefix!: IConfig['prefix'];
     public sufix!: IConfig['sufix'];
     public customPattern!: IConfig['patterns'];
+    public ipError?: boolean;
+    public min: number | null = null;
+    public max: number | null = null;
+
     protected prevResult: string = '';
     protected prevActualResult: string = '';
 
@@ -30,6 +34,7 @@ export class MaskApplierService {
         this.sufix = this._config.sufix;
         this.hiddenInput = this._config.hiddenInput;
     }
+
     // tslint:disable-next-line:no-any
     public applyMaskWithPattern(inputValue: string, maskAndPattern: [string, IConfig['patterns']]): string {
         const [mask, customPattern] = maskAndPattern;
@@ -40,55 +45,62 @@ export class MaskApplierService {
         inputValue: string,
         maskExpression: string,
         position: number = 0,
-        cb: Function = () => {}
+        cb: Function = () => { }
     ): string {
         if (inputValue === undefined || inputValue === null || maskExpression === undefined) {
             return '';
         }
+        const listMaskExpression = maskExpression.split(' ');
+        const findMaskExpression = (val: string) => listMaskExpression.find(str => str.startsWith(val));
         let cursor: number = 0;
         let result: string = ``;
         let multi: boolean = false;
+        let backspaceShift: boolean = false;
+        let shift: number = 1;
         if (inputValue.slice(0, this.prefix.length) === this.prefix) {
             inputValue = inputValue.slice(this.prefix.length, inputValue.length);
         }
         const inputArray: string[] = inputValue.toString().split('');
-        if (maskExpression === 'percent') {
-            if (inputValue.match('[a-z]|[A-Z]') || inputValue.match(/[-!$%^&*()_+|~=`{}\[\]:";'<>?,\/]/)) {
-                inputValue = this._checkInput(inputValue);
-                if (inputValue.length >= 3 && inputValue !== '100') {
-                    inputValue = inputValue.substring(0, 2);
-                }
-            }
-            if (this.percentage(inputValue)) {
-                result = inputValue;
-            } else {
-                result = inputValue.substring(0, inputValue.length - 1);
-            }
-        } else if (
-            maskExpression === 'separator' ||
-            maskExpression === 'dot_separator' ||
-            maskExpression.startsWith('dot_separator') ||
-            maskExpression === 'comma_separator' ||
-            maskExpression.startsWith('comma_separator')
+        let inputValueNumber: number = this.readAsNumber(inputValue);
+
+        if (findMaskExpression('IP')) {
+            maskExpression = this.checkIp(inputArray);
+        }
+
+        if (!!['separator', 'dot_separator', 'comma_separator', 'percent']
+            .find((val: string) => !!findMaskExpression(val))
         ) {
-            if (inputValue.match('[a-z]|[A-Z]') || inputValue.match(/[-@#!$%^&*()_+|~=`{}\[\]:";<>?\/]/)) {
+            if (inputValue.match('[a-z]|[A-Z]') || inputValue.match(/[-@#!$%\\^&*()_£¬'+|~=`{}\[\]:";<>.?\/]/)) {
                 inputValue = this._checkInput(inputValue);
             }
-            const precision: number = this.getPrecision(maskExpression);
+            const precision: number = this.getPrecision(listMaskExpression);
             let strForSep: string;
-            if (maskExpression.startsWith('dot_separator')) {
+            if (!isNaN(this.readAsNumber(inputValue))){
+                inputValue = this.minMax(this.min, this.max, inputValue); 
+            }
+
+            if (findMaskExpression('dot_separator')) {
+                if (
+                    inputValue.indexOf('.') !== -1 &&
+                    inputValue.indexOf('.') === inputValue.lastIndexOf('.') &&
+                    inputValue.indexOf('.') > 3
+                ) {
+                    inputValue = inputValue.replace('.', ',');
+                }
                 inputValue =
                     inputValue.length > 1 && inputValue[0] === '0' && inputValue[1] !== ','
                         ? inputValue.slice(1, inputValue.length)
                         : inputValue;
+                inputValueNumber = this.readAsNumber(inputValue);
             }
-            if (maskExpression.startsWith('comma_separator')) {
+            if (findMaskExpression('comma_separator')) {
                 inputValue =
                     inputValue.length > 1 && inputValue[0] === '0' && inputValue[1] !== '.'
                         ? inputValue.slice(1, inputValue.length)
                         : inputValue;
+                inputValueNumber = this.readAsNumber(inputValue);
             }
-            if (maskExpression === 'separator') {
+            if (findMaskExpression('separator')) {
                 if (
                     inputValue.includes(',') &&
                     inputValue.endsWith(',') &&
@@ -99,30 +111,63 @@ export class MaskApplierService {
                 if (inputValue.match('[a-z]|[A-Z]') || inputValue.match(/[@#!$%^&*()_+|~=`{}\[\]:.";<>?\/]/)) {
                     inputValue = inputValue.substring(0, inputValue.length - 1);
                 }
+                inputValueNumber = this.readAsNumber(inputValue);
                 strForSep = inputValue.replace(/\s/g, '');
                 result = this.separator(strForSep, ' ', '.', precision);
-            } else if (maskExpression === 'dot_separator' || maskExpression.startsWith('dot_separator')) {
+            } else if (findMaskExpression('dot_separator')) {
                 if (inputValue.match('[a-z]|[A-Z]') || inputValue.match(/[@#!$%^&*()_+|~=`{}\[\]:\s";<>?\/]/)) {
                     inputValue = inputValue.substring(0, inputValue.length - 1);
                 }
+                inputValueNumber = this.readAsNumber(inputValue);
                 inputValue = this.checkInputPrecision(inputValue, precision, ',');
                 strForSep = inputValue.replace(/\./g, '');
                 result = this.separator(strForSep, '.', ',', precision);
-            } else if (maskExpression === 'comma_separator' || maskExpression.startsWith('comma_separator')) {
-                inputValue = this.checkInputPrecision(inputValue, precision, '.');
+            } else if (findMaskExpression('comma_separator')) {
                 strForSep = inputValue.replace(/\,/g, '');
                 result = this.separator(strForSep, ',', '.', precision);
+                inputValueNumber = this.readAsNumber(inputValue);
             }
-            position = result.length + 1;
-            cursor = position;
-            const shiftStep: number = /\*|\?/g.test(maskExpression.slice(0, cursor)) ? inputArray.length : cursor;
-            this._shift.add(shiftStep + this.prefix.length || 0);
+
+            if (findMaskExpression('percent')) {
+                inputValueNumber = this.readAsNumber(inputValue);
+                inputValue = this.checkPerc(inputValueNumber);
+            }
+
+
+
+            const commaShift: number = result.indexOf(',') - inputValue.indexOf(',');
+            const shiftStep: number = result.length - inputValue.length;
+
+            if (shiftStep > 0 && result[position] !== ',') {
+                backspaceShift = true;
+                let _shift: number = 0;
+                do {
+                    this._shift.add(position + _shift);
+                    _shift++;
+                } while (_shift < shiftStep);
+            } else if (
+                commaShift !== 0 &&
+                result.indexOf(',') !== -1 &&
+                result.indexOf(',') < position &&
+                shiftStep <= 0
+            ) {
+                this._shift.clear();
+                backspaceShift = true;
+                shift = shiftStep;
+                position += shiftStep;
+                this._shift.add(position);
+            } else {
+                this._shift.clear();
+            }
+
+
+
         } else {
             for (
                 // tslint:disable-next-line
                 let i: number = 0, inputSymbol: string = inputArray[0];
                 i < inputArray.length;
-                i++, inputSymbol = inputArray[i]
+                i++ , inputSymbol = inputArray[i]
             ) {
                 if (cursor === maskExpression.length) {
                     break;
@@ -150,10 +195,12 @@ export class MaskApplierService {
                 ) {
                     result += inputSymbol;
                     cursor += 3;
-                } else if (this._checkSymbolMask(inputSymbol, maskExpression[cursor]) ||
-                            this.hiddenInput &&
-                            this.maskAvailablePatterns[maskExpression[cursor]] &&
-                            this.maskAvailablePatterns[maskExpression[cursor]].symbol === inputSymbol) {
+                } else if (
+                    this._checkSymbolMask(inputSymbol, maskExpression[cursor]) ||
+                    (this.hiddenInput &&
+                        this.maskAvailablePatterns[maskExpression[cursor]] &&
+                        this.maskAvailablePatterns[maskExpression[cursor]].symbol === inputSymbol)
+                ) {
                     if (maskExpression[cursor] === 'H') {
                         if (Number(inputSymbol) > 2) {
                             result += 0;
@@ -254,6 +301,14 @@ export class MaskApplierService {
                 ) {
                     cursor += 3;
                     result += inputSymbol;
+                } else if (
+                    this.maskExpression[cursor + 1] === '?' &&
+                    this._findSpecialChar(this.maskExpression[cursor + 2]) &&
+                    this._findSpecialChar(inputSymbol) === this.maskExpression[cursor + 2] &&
+                    multi
+                ) {
+                    cursor += 3;
+                    result += inputSymbol;
                 }
             }
         }
@@ -264,7 +319,6 @@ export class MaskApplierService {
             result += maskExpression[maskExpression.length - 1];
         }
 
-        let shift: number = 1;
         let newPosition: number = position + 1;
 
         while (this._shift.has(newPosition)) {
@@ -272,7 +326,10 @@ export class MaskApplierService {
             newPosition++;
         }
 
-        cb(this._shift.has(position) ? shift : 0);
+        cb(this._shift.has(position) ? shift : 0, backspaceShift);
+        if (shift < 0) {
+            this._shift.clear();
+        }
         let res: string = `${this.prefix}${result}`;
         res = this.sufix ? `${this.prefix}${result}${this.sufix}` : `${this.prefix}${result}`;
         if (result.length === 0) {
@@ -311,16 +368,28 @@ export class MaskApplierService {
         return res + decimals.substr(0, precision + 1);
     };
 
-    private percentage = (str: string): boolean => {
-        return Number(str) >= 0 && Number(str) <= 100;
+    private minMax = (min: number | null, max: number | null, str: string): string => {
+        if (isNaN(this.readAsNumber(str))) {
+            return str;
+        }
+        const val =this.readAsNumber(str);
+
+        str = max === null || val <= max ? str : (max as number).toString();
+        str = min === null || val >= min ? str : (min as number).toString();
+        return str;
     };
 
-    private getPrecision = (maskExpression: string): number => {
-        const x: string[] = maskExpression.split('.');
-        if (x.length > 1) {
-            return Number(x[x.length - 1]);
+    private getPrecision = (listMaskExpression: Array<string>): number => {
+        const maskExpression: string = listMaskExpression.find((maskExpression: string) =>
+            maskExpression.split('.').length > 1) as string;
+        if (maskExpression) {
+            const x: string[] = maskExpression.split('.');
+            if (x.length > 1) {
+                return Number(x[x.length - 1]);
+            }
         }
         return Infinity;
+
     };
 
     private checkInputPrecision = (inputValue: string, precision: number, decimalMarker: string): string => {
@@ -343,10 +412,37 @@ export class MaskApplierService {
         return inputValue;
     };
 
+
+    private readAsNumber(val: string) {
+
+        return val.indexOf(',') !== -1 && val.indexOf(',') === val.lastIndexOf(',') ?
+            Number(val.replace(',', '.')) : Number(val);
+
+    }
+
     private _checkInput(str: string): string {
         return str
             .split('')
-            .filter((i: string) => i.match('\\d'))
+            .filter((i: string) => i.match('\\d') || i === '.' || i === ',')
             .join('');
     }
+    // tslint:disable-next-line: max-file-line-count
+
+
+    private checkIp = (inputArray: string[]) => {
+        this.ipError = (inputArray.filter((i: string) => i === '.').length < 3 && inputArray.length < 7) as boolean;
+        return '099.099.099.099';
+    }
+
+    private checkPerc(inputValue: number) {
+        if (isNaN(inputValue)) {
+            return '';
+
+        }
+        const min = this.min || 0;
+        const max = this.max || 100;
+        return this.minMax(min, max, inputValue.toString()).toString();
+    }
+
+
 }
