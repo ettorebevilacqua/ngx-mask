@@ -4,7 +4,8 @@ import { IConfig } from 'public_api';
 
 @Component({
     selector: 'test-mask',
-    template: `
+    template:'ciao ',
+   /* template: `
         <input
             id="maska"
             [mask]="mask"
@@ -18,8 +19,8 @@ import { IConfig } from 'public_api';
             [showMaskTyped]="showMaskTyped"
             [hiddenInput]="hiddenInput"
             [(ngModel)]="ngModelValue"
-        />
-    `,
+        /> 
+    `, */
 })
 export class TestMaskComponent {
     public mask!: string | null;

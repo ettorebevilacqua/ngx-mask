@@ -56,7 +56,7 @@
               <div class="flex-row">
                 <div class="flex-cell">
                   <mat-form-field>
-                    <input matInput max="2300" min="5" placeholder="number" mask="dot_separator.5" sufix="%" [(ngModel)]="numberModel"
+                    <input matInput placeholder="number" appNgxMask="dot_separator.5"  [(ngModel)]="numberModel"
                       [formControl]="formNumber" decimal="2">
                     <mat-hint> <b>Mask:</b> "00/00/0000" </mat-hint>
                   </mat-form-field>

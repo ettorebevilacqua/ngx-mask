@@ -69,16 +69,14 @@ export class MaskService extends MaskApplierService {
         const result: string = super.applyMask(newInputValue, maskExpression, position, cb);
         this.actualValue = this.getActualValue(result);
 
-        if (/dot_separator\.\d{1,}/.test(this.maskExpression) === true && this.dropSpecialCharacters === true) {
+        const dot_separator: string | undefined = this.findMaskExpression('dot_separator');
+        const comma_separator: string | undefined = this.findMaskExpression('comma_separator');
+
+        if (dot_separator) {
             this.maskSpecialCharacters = this.maskSpecialCharacters.filter((item: string) => item !== ',');
         }
-        if ('dot_separator' === this.maskExpression && this.dropSpecialCharacters === true) {
-            this.maskSpecialCharacters = this.maskSpecialCharacters.filter((item: string) => item !== ',');
-        }
-        if (/comma_separator\.\d{1,}/.test(this.maskExpression) === true && this.dropSpecialCharacters === true) {
-            this.maskSpecialCharacters = this.maskSpecialCharacters.filter((item: string) => item !== '.');
-        }
-        if ('comma_separator' === this.maskExpression && this.dropSpecialCharacters === true) {
+
+        if (comma_separator) {
             this.maskSpecialCharacters = this.maskSpecialCharacters.filter((item: string) => item !== '.');
         }
 
@@ -277,8 +275,11 @@ export class MaskService extends MaskApplierService {
                     ).toFixed(2);
         }
         if (this.isNumberValue) {
-            return result === '' ? result : this.readAsNumber(this._removeMask(
+            let isnegative: boolean = result.trim()[0] === '-';
+            const ris = result === '' ? result : this.readAsNumber(this._removeMask(
                 this._removeSufix(this._removePrefix(result)), this.maskSpecialCharacters));
+            return isnegative ? '-' + ris : ris;
+
         } else if (
             this._removeMask(this._removeSufix(this._removePrefix(result)), this.maskSpecialCharacters).indexOf(',') !==
             -1

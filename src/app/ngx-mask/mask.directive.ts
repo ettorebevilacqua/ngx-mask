@@ -6,7 +6,7 @@ import { MaskService } from './mask.service';
 import { config, IConfig, withoutValidation } from './config';
 
 @Directive({
-    selector: '[mask]',
+    selector: '[appNgxMask]',
     providers: [
         {
             provide: NG_VALUE_ACCESSOR,
@@ -22,7 +22,7 @@ import { config, IConfig, withoutValidation } from './config';
     ],
 })
 export class MaskDirective implements ControlValueAccessor, OnChanges {
-    @Input('mask') public maskExpression: string = '';
+    @Input('appNgxMask') public maskExpression: string = '';
     @Input() public specialCharacters: IConfig['specialCharacters'] = [];
     @Input() public patterns: IConfig['patterns'] = {};
     @Input() public prefix: IConfig['prefix'] = '';
@@ -41,7 +41,7 @@ export class MaskDirective implements ControlValueAccessor, OnChanges {
     // @HostBinding('max') public max: number | null = null;
     // @HostBinding('min') public min: number | null = null;
 
-   // @HostBinding('class.valid') get valid() { return this.control.valid; }
+    // @HostBinding('class.valid') get valid() { return this.control.valid; }
 
     private _maskValue!: string;
     private _inputValue!: string;
@@ -56,21 +56,19 @@ export class MaskDirective implements ControlValueAccessor, OnChanges {
 
     public constructor(
         // tslint:disable-next-line
-        elm: ElementRef,
+        // elm: ElementRef,
         @Inject(DOCUMENT) private document: any,
         private _maskService: MaskService
     ) {
 
-        elm.nativeElement.max;
-        const that = this;
-       // console.log(elm);
+        //   elm.nativeElement.max;
     }
 
     // tslint:disable-next-line: cyclomatic-complexity
     public ngOnChanges(changes: SimpleChanges): void {
         // tslint:disable-next-line:max-line-length
-       //y console.log('on change directive', changes.condition.currentValue);
-     //   console.log('on change directive', changes.condition);
+        //y console.log('on change directive', changes.condition.currentValue);
+        //   console.log('on change directive', changes.condition);
         const {
             maskExpression,
             specialCharacters,
@@ -88,8 +86,23 @@ export class MaskDirective implements ControlValueAccessor, OnChanges {
             min,
             max
         } = changes;
+
         if (maskExpression) {
+
             this._maskValue = changes.maskExpression.currentValue || '';
+            this._maskService.maskExpression = this._maskValue;
+            this._maskService.setListMaskExpression();
+            // this._maskService.setListMaskExpression();
+            if (this._maskService.findMaskExpression('percent')) {
+                this.max = this.max === undefined || this.max === null ? 100 : this.max;
+                this.min = this.min === undefined || this.min === null ? 0 : this.min;
+                this.sufix = this.sufix === undefined || this.sufix === null || this.sufix === '' ?
+                    ' %' : this.sufix;
+                this._maskService.max = this.max;
+                this._maskService.min = this.min;
+                this._maskService.sufix = this.sufix;
+
+            }
         }
         if (specialCharacters) {
             if (
@@ -107,8 +120,8 @@ export class MaskDirective implements ControlValueAccessor, OnChanges {
         if (prefix) {
             this._maskService.prefix = prefix.currentValue;
         }
-        if (sufix) {
-            this._maskService.sufix = sufix.currentValue;
+        if (sufix || this.sufix) {
+            this._maskService.sufix = sufix ? sufix.currentValue : this.sufix;
         }
         if (dropSpecialCharacters) {
             this._maskService.dropSpecialCharacters = dropSpecialCharacters.currentValue;
@@ -134,13 +147,13 @@ export class MaskDirective implements ControlValueAccessor, OnChanges {
         if (decimal) {
             this._maskService.decimal = decimal.currentValue;
         }
-        if (min) {
-            this._maskService.min = min.currentValue;
+        if (min || this.min) {
+            this._maskService.min = min ? min.currentValue : this.min;
         }
-        if (max) {
-            this._maskService.max = max.currentValue;
+        if (max || this.max) {
+            this._maskService.max = max ? max.currentValue : this.max;
+        }
 
-        }
 
         this._applyMask();
     }
@@ -340,10 +353,10 @@ export class MaskDirective implements ControlValueAccessor, OnChanges {
         this._inputValue = inputValue;
     }
 
-  /*  @HostListener('min', ['$event'])
-    public onMin(e: any): void {
-        console.log('on min', e);
-    } */
+    /*  @HostListener('min', ['$event'])
+      public onMin(e: any): void {
+          console.log('on min', e);
+      } */
 
 
     // tslint:disable-next-line
