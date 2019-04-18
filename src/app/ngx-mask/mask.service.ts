@@ -69,14 +69,14 @@ export class MaskService extends MaskApplierService {
         const result: string = super.applyMask(newInputValue, maskExpression, position, cb);
         this.actualValue = this.getActualValue(result);
 
-        const dot_separator: string | undefined = this.findMaskExpression('dot_separator');
-        const comma_separator: string | undefined = this.findMaskExpression('comma_separator');
+        const dotSeparator: string | undefined = this.findMaskExpression('dot_separator');
+        const commaSeparator: string | undefined = this.findMaskExpression('comma_separator');
 
-        if (dot_separator) {
+        if (dotSeparator) {
             this.maskSpecialCharacters = this.maskSpecialCharacters.filter((item: string) => item !== ',');
         }
 
-        if (comma_separator) {
+        if (commaSeparator) {
             this.maskSpecialCharacters = this.maskSpecialCharacters.filter((item: string) => item !== '.');
         }
 
@@ -275,9 +275,9 @@ export class MaskService extends MaskApplierService {
                     ).toFixed(2);
         }
         if (this.isNumberValue) {
-            let isnegative: boolean = result.trim()[0] === '-';
-            const ris = result === '' ? result : this.readAsNumber(this._removeMask(
-                this._removeSufix(this._removePrefix(result)), this.maskSpecialCharacters));
+            const isnegative: boolean = result.trim()[0] === '-';
+            const ris: string | null = result === '' ? result : this.readAsNumber(this._removeMask(
+                this._removeSufix(this._removePrefix(result)), this.maskSpecialCharacters)).toString();
             return isnegative ? '-' + ris : ris;
 
         } else if (

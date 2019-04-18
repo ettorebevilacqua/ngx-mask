@@ -12,7 +12,7 @@ import {
     MatToolbarModule,
 
 } from '@angular/material';
-import { TestMaskComponent } from './ngx-mask/test/utils/test-component.component';
+
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
@@ -20,6 +20,8 @@ import 'hammerjs';
 
 import { AppComponent } from './app.component';
 import { NgxMaskModule } from './ngx-mask/ngx-mask.module';
+import { TestMaskComponent } from './ngx-mask/test/utils/test-component.component';
+
 
 @NgModule({
     declarations: [AppComponent, TestMaskComponent],

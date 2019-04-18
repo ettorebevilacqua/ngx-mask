@@ -1,5 +1,5 @@
 // tslint:disable-next-line: max-line-length
-import { Directive, forwardRef, HostBinding, HostListener, Inject, Input, OnChanges, SimpleChanges, ElementRef } from '@angular/core';
+import { Directive, ElementRef, forwardRef, HostBinding, HostListener, Inject, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
 import { ControlValueAccessor, FormControl, NG_VALIDATORS, NG_VALUE_ACCESSOR, ValidationErrors } from '@angular/forms';
 import { MaskService } from './mask.service';
@@ -57,6 +57,7 @@ export class MaskDirective implements ControlValueAccessor, OnChanges {
     public constructor(
         // tslint:disable-next-line
         // elm: ElementRef,
+// tslint:disable-next-line: no-any
         @Inject(DOCUMENT) private document: any,
         private _maskService: MaskService
     ) {
@@ -67,7 +68,7 @@ export class MaskDirective implements ControlValueAccessor, OnChanges {
     // tslint:disable-next-line: cyclomatic-complexity
     public ngOnChanges(changes: SimpleChanges): void {
         // tslint:disable-next-line:max-line-length
-        //y console.log('on change directive', changes.condition.currentValue);
+        // console.log('on change directive', changes.condition.currentValue);
         //   console.log('on change directive', changes.condition);
         const {
             maskExpression,

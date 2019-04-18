@@ -18,10 +18,11 @@ export class MaskApplierService {
     public ipError?: boolean;
     public min: number | null = null;
     public max: number | null = null;
+    public listMaskExpression: string[];
 
     protected prevResult: string = '';
     protected prevActualResult: string = '';
-    public listMaskExpression: string[];
+
 
     private _shift!: Set<number>;
 
@@ -79,7 +80,7 @@ export class MaskApplierService {
         if (!!['separator', 'dot_separator', 'comma_separator', 'percent']
             .find((val: string) => !!this.findMaskExpression(val))
         ) {
-            let isnegative: boolean = inputValue.trim()[0] === '-';
+            const isnegative: boolean = inputValue.trim()[0] === '-';
 
             if (inputValue.match('[a-z]|[A-Z]') || inputValue.match(/[-@#!$%\\^&*()_£¬'+|~=`{}\[\]:";<>.?\/]/)) {
                 inputValue = this._checkInput(inputValue);

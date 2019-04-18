@@ -78,9 +78,9 @@ export class AppComponent {
 
         this.customMaska = ['PPP-PPP-PPP', this.pattern];
 
-        // tslint:disable-next-line
-        this.form1.valueChanges.subscribe((x: any) => console.log('Value', x));
-        this.formNumber.valueChanges.subscribe((val: string) => console.log('onChange', val));
+     // tslint:disable: no-console
+      //  this.form1.valueChanges.subscribe((x: any) => console.log('Value', x));
+      //  this.formNumber.valueChanges.subscribe((val: string) => console.log('onChange', val));
 
         // this.formNumber.setValidators(Validators.max(88));
     }
