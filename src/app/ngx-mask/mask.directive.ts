@@ -1,404 +1,480 @@
 // tslint:disable-next-line: max-line-length
-import { Directive, ElementRef, forwardRef, HostBinding, HostListener, Inject, Input, OnChanges, SimpleChanges } from '@angular/core';
-import { DOCUMENT } from '@angular/common';
-import { ControlValueAccessor, FormControl, NG_VALIDATORS, NG_VALUE_ACCESSOR, ValidationErrors } from '@angular/forms';
-import { MaskService } from './mask.service';
-import { config, IConfig, withoutValidation } from './config';
+import {
+  Directive,
+  ElementRef,
+  forwardRef,
+  HostBinding,
+  HostListener,
+  Inject,
+  Input,
+  OnChanges,
+  SimpleChanges
+} from "@angular/core";
+import { DOCUMENT } from "@angular/common";
+import {
+  ControlValueAccessor,
+  FormControl,
+  NG_VALIDATORS,
+  NG_VALUE_ACCESSOR,
+  ValidationErrors
+} from "@angular/forms";
+import { MaskService } from "./mask.service";
+import { config, IConfig, withoutValidation } from "./config";
 
 @Directive({
-    selector: '[appNgxMask]',
-    providers: [
-        {
-            provide: NG_VALUE_ACCESSOR,
-            useExisting: forwardRef(() => MaskDirective),
-            multi: true,
-        },
-        {
-            provide: NG_VALIDATORS,
-            useExisting: forwardRef(() => MaskDirective),
-            multi: true,
-        },
-        MaskService,
-    ],
+  selector: "[appNgxMask]",
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => MaskDirective),
+      multi: true
+    },
+    {
+      provide: NG_VALIDATORS,
+      useExisting: forwardRef(() => MaskDirective),
+      multi: true
+    },
+    MaskService
+  ]
 })
 export class MaskDirective implements ControlValueAccessor, OnChanges {
-    @Input('appNgxMask') public maskExpression: string = '';
-    @Input() public specialCharacters: IConfig['specialCharacters'] = [];
-    @Input() public patterns: IConfig['patterns'] = {};
-    @Input() public prefix: IConfig['prefix'] = '';
-    @Input() public sufix: IConfig['sufix'] = '';
-    @Input() public dropSpecialCharacters: IConfig['dropSpecialCharacters'] | null = null;
-    @Input() public hiddenInput: IConfig['hiddenInput'] | null = null;
-    @Input() public showMaskTyped: IConfig['showMaskTyped'] | null = null;
-    @Input() public shownMaskExpression: IConfig['shownMaskExpression'] | null = null;
-    @Input() public showTemplate: IConfig['showTemplate'] | null = null;
-    @Input() public clearIfNotMatch: IConfig['clearIfNotMatch'] | null = null;
-    @Input() public validation: IConfig['validation'] | null = null;
-    @Input() public decimal: IConfig['decimal'] | null = null;
-    @Input() public min: IConfig['min'] | null = null;
-    @Input() public max: IConfig['max'] | null = null;
+  @Input("appNgxMask") public maskExpression: string = "";
+  @Input() public specialCharacters: IConfig["specialCharacters"] = [];
+  @Input() public patterns: IConfig["patterns"] = {};
+  @Input() public prefix: IConfig["prefix"] = "";
+  @Input() public sufix: IConfig["sufix"] = "";
+  @Input() public dropSpecialCharacters:
+    | IConfig["dropSpecialCharacters"]
+    | null = null;
+  @Input() public hiddenInput: IConfig["hiddenInput"] | null = null;
+  @Input() public showMaskTyped: IConfig["showMaskTyped"] | null = null;
+  @Input() public shownMaskExpression:
+    | IConfig["shownMaskExpression"]
+    | null = null;
+  @Input() public showTemplate: IConfig["showTemplate"] | null = null;
+  @Input() public clearIfNotMatch: IConfig["clearIfNotMatch"] | null = null;
+  @Input() public validation: IConfig["validation"] | null = null;
+  @Input() public decimal: IConfig["decimal"] | null = null;
+  @Input() public min: IConfig["min"] | null = null;
+  @Input() public max: IConfig["max"] | null = null;
+  @Input() public value: string | null = null;
 
-    // @HostBinding('max') public max: number | null = null;
-    // @HostBinding('min') public min: number | null = null;
+  // @HostBinding('max') public max: number | null = null;
+  // @HostBinding('min') public min: number | null = null;
 
-    // @HostBinding('class.valid') get valid() { return this.control.valid; }
+  // @HostBinding('class.valid') get valid() { return this.control.valid; }
 
-    private _maskValue!: string;
-    private _inputValue!: string;
-    private _position: number | null = null;
+  private _maskValue!: string;
+  private _inputValue!: string;
+  private _position: number | null = null;
+  // tslint:disable-next-line
+  private _start!: number;
+  private _end!: number;
+  private _code!: string;
+  // tslint:disable-next-line
+  public onChange = (_: any) => {};
+  public onTouch = () => {};
+
+  public constructor(
     // tslint:disable-next-line
-    private _start!: number;
-    private _end!: number;
-    private _code!: string;
-    // tslint:disable-next-line
-    public onChange = (_: any) => { };
-    public onTouch = () => { };
+    // elm: ElementRef,
+    // tslint:disable-next-line: no-any
+    @Inject(DOCUMENT) private document: any,
+    private _maskService: MaskService
+  ) {
+    console.log("ngxmask directive create ", this.value);
+    //   elm.nativeElement.max;
+  }
 
-    public constructor(
-        // tslint:disable-next-line
-        // elm: ElementRef,
-// tslint:disable-next-line: no-any
-        @Inject(DOCUMENT) private document: any,
-        private _maskService: MaskService
+  // tslint:disable-next-line: cyclomatic-complexity
+  public ngOnChanges(changes: SimpleChanges): void {
+    // tslint:disable-next-line:max-line-length
+    // console.log('on change directive', changes.condition.currentValue);
+    //   console.log('on change directive', changes.condition);
+    const {
+      maskExpression,
+      specialCharacters,
+      patterns,
+      prefix,
+      sufix,
+      dropSpecialCharacters,
+      hiddenInput,
+      showMaskTyped,
+      shownMaskExpression,
+      showTemplate,
+      clearIfNotMatch,
+      validation,
+      decimal,
+      min,
+      max,
+      value
+    } = changes;
+
+    if (maskExpression) {
+      this._maskValue = changes.maskExpression.currentValue || "";
+      this._maskService.maskExpression = this._maskValue;
+      this._maskService.setListMaskExpression();
+      // this._maskService.setListMaskExpression();
+      if (this._maskService.findMaskExpression("percent")) {
+        this.max = this.max === undefined || this.max === null ? 100 : this.max;
+        this.min = this.min === undefined || this.min === null ? 0 : this.min;
+        this.sufix =
+          this.sufix === undefined || this.sufix === null || this.sufix === ""
+            ? " %"
+            : this.sufix;
+        this._maskService.max = this.max;
+        this._maskService.min = this.min;
+        this._maskService.sufix = this.sufix;
+      }
+    }
+    if (value) {
+      console.log("change value", value);
+    }
+    if (specialCharacters) {
+      if (
+        !specialCharacters.currentValue ||
+        !Array.isArray(specialCharacters.currentValue) ||
+        (Array.isArray(specialCharacters.currentValue) &&
+          !specialCharacters.currentValue.length)
+      ) {
+        return;
+      }
+      this._maskService.maskSpecialCharacters =
+        changes.specialCharacters.currentValue || "";
+    }
+    if (patterns) {
+      this._maskService.maskAvailablePatterns = patterns.currentValue;
+    }
+    if (prefix) {
+      this._maskService.prefix = prefix.currentValue;
+    }
+    if (sufix || this.sufix) {
+      this._maskService.sufix = sufix ? sufix.currentValue : this.sufix;
+    }
+    if (dropSpecialCharacters) {
+      this._maskService.dropSpecialCharacters =
+        dropSpecialCharacters.currentValue;
+    }
+    if (hiddenInput) {
+      this._maskService.hiddenInput = hiddenInput.currentValue;
+    }
+    if (showMaskTyped) {
+      this._maskService.showMaskTyped = showMaskTyped.currentValue;
+    }
+    if (shownMaskExpression) {
+      this._maskService.shownMaskExpression = shownMaskExpression.currentValue;
+    }
+    if (showTemplate) {
+      this._maskService.showTemplate = showTemplate.currentValue;
+    }
+    if (clearIfNotMatch) {
+      this._maskService.clearIfNotMatch = clearIfNotMatch.currentValue;
+    }
+    if (validation) {
+      this._maskService.validation = validation.currentValue;
+    }
+    if (decimal) {
+      this._maskService.decimal = decimal.currentValue;
+    }
+    if (min || this.min) {
+      this._maskService.min = min ? min.currentValue : this.min;
+    }
+    if (max || this.max) {
+      this._maskService.max = max ? max.currentValue : this.max;
+    }
+
+    this._applyMask();
+  }
+
+  // tslint:disable-next-line: cyclomatic-complexity
+  public validate({ value }: FormControl): ValidationErrors | null {
+    if (!this._maskService.validation) {
+      return null;
+    }
+    if (this._maskService.ipError) {
+      return { "Mask error": true };
+    } else if (!this._maskService.ipError) {
+      return null;
+    }
+    if (
+      /dot_separator\.\d{1,}/.test(this._maskValue) === true ||
+      /comma_separator\.\d{1,}/.test(this._maskValue) === true
     ) {
-
-        //   elm.nativeElement.max;
+      return null;
     }
-
-    // tslint:disable-next-line: cyclomatic-complexity
-    public ngOnChanges(changes: SimpleChanges): void {
-        // tslint:disable-next-line:max-line-length
-        // console.log('on change directive', changes.condition.currentValue);
-        //   console.log('on change directive', changes.condition);
-        const {
-            maskExpression,
-            specialCharacters,
-            patterns,
-            prefix,
-            sufix,
-            dropSpecialCharacters,
-            hiddenInput,
-            showMaskTyped,
-            shownMaskExpression,
-            showTemplate,
-            clearIfNotMatch,
-            validation,
-            decimal,
-            min,
-            max
-        } = changes;
-
-        if (maskExpression) {
-
-            this._maskValue = changes.maskExpression.currentValue || '';
-            this._maskService.maskExpression = this._maskValue;
-            this._maskService.setListMaskExpression();
-            // this._maskService.setListMaskExpression();
-            if (this._maskService.findMaskExpression('percent')) {
-                this.max = this.max === undefined || this.max === null ? 100 : this.max;
-                this.min = this.min === undefined || this.min === null ? 0 : this.min;
-                this.sufix = this.sufix === undefined || this.sufix === null || this.sufix === '' ?
-                    ' %' : this.sufix;
-                this._maskService.max = this.max;
-                this._maskService.min = this.min;
-                this._maskService.sufix = this.sufix;
-
-            }
-        }
-        if (specialCharacters) {
-            if (
-                !specialCharacters.currentValue ||
-                !Array.isArray(specialCharacters.currentValue) ||
-                (Array.isArray(specialCharacters.currentValue) && !specialCharacters.currentValue.length)
-            ) {
-                return;
-            }
-            this._maskService.maskSpecialCharacters = changes.specialCharacters.currentValue || '';
-        }
-        if (patterns) {
-            this._maskService.maskAvailablePatterns = patterns.currentValue;
-        }
-        if (prefix) {
-            this._maskService.prefix = prefix.currentValue;
-        }
-        if (sufix || this.sufix) {
-            this._maskService.sufix = sufix ? sufix.currentValue : this.sufix;
-        }
-        if (dropSpecialCharacters) {
-            this._maskService.dropSpecialCharacters = dropSpecialCharacters.currentValue;
-        }
-        if (hiddenInput) {
-            this._maskService.hiddenInput = hiddenInput.currentValue;
-        }
-        if (showMaskTyped) {
-            this._maskService.showMaskTyped = showMaskTyped.currentValue;
-        }
-        if (shownMaskExpression) {
-            this._maskService.shownMaskExpression = shownMaskExpression.currentValue;
-        }
-        if (showTemplate) {
-            this._maskService.showTemplate = showTemplate.currentValue;
-        }
-        if (clearIfNotMatch) {
-            this._maskService.clearIfNotMatch = clearIfNotMatch.currentValue;
-        }
-        if (validation) {
-            this._maskService.validation = validation.currentValue;
-        }
-        if (decimal) {
-            this._maskService.decimal = decimal.currentValue;
-        }
-        if (min || this.min) {
-            this._maskService.min = min ? min.currentValue : this.min;
-        }
-        if (max || this.max) {
-            this._maskService.max = max ? max.currentValue : this.max;
-        }
-
-
-        this._applyMask();
+    if (withoutValidation.includes(this._maskValue)) {
+      return null;
     }
-
-    // tslint:disable-next-line: cyclomatic-complexity
-    public validate({ value }: FormControl): ValidationErrors | null {
-        if (!this._maskService.validation) {
-            return null;
-        }
-        if (this._maskService.ipError) {
-            return { 'Mask error': true };
-        } else if (!this._maskService.ipError) {
-            return null;
-        }
+    if (this._maskService.clearIfNotMatch) {
+      return null;
+    }
+    if (value && value.toString().length >= 1) {
+      let counterOfOpt: number = 0;
+      for (const key in this._maskService.maskAvailablePatterns) {
         if (
-            /dot_separator\.\d{1,}/.test(this._maskValue) === true ||
-            /comma_separator\.\d{1,}/.test(this._maskValue) === true
+          this._maskService.maskAvailablePatterns[key].optional &&
+          this._maskService.maskAvailablePatterns[key].optional === true
         ) {
+          if (this._maskValue.indexOf(key) !== -1) {
+            counterOfOpt++;
+          }
+          if (
+            this._maskValue.indexOf(key) !== -1 &&
+            value.toString().length >= this._maskValue.indexOf(key)
+          ) {
             return null;
-        }
-        if (withoutValidation.includes(this._maskValue)) {
+          }
+          if (counterOfOpt === this._maskValue.length) {
             return null;
+          }
         }
-        if (this._maskService.clearIfNotMatch) {
-            return null;
-        }
-        if (value && value.toString().length >= 1) {
-            let counterOfOpt: number = 0;
-            for (const key in this._maskService.maskAvailablePatterns) {
-                if (
-                    this._maskService.maskAvailablePatterns[key].optional &&
-                    this._maskService.maskAvailablePatterns[key].optional === true
-                ) {
-                    if (this._maskValue.indexOf(key) !== -1) {
-                        counterOfOpt++;
-                    }
-                    if (
-                        this._maskValue.indexOf(key) !== -1 &&
-                        value.toString().length >= this._maskValue.indexOf(key)
-                    ) {
-                        return null;
-                    }
-                    if (counterOfOpt === this._maskValue.length) {
-                        return null;
-                    }
-                }
-            }
-            if (
-                this._maskValue.indexOf('*') === 1 ||
-                this._maskValue.indexOf('?') === 1 ||
-                this._maskValue.indexOf('{') === 1
-            ) {
-                return null;
-            } else if (
-                (this._maskValue.indexOf('*') > 1 && value.toString().length < this._maskValue.indexOf('*')) ||
-                (this._maskValue.indexOf('?') > 1 && value.toString().length < this._maskValue.indexOf('?'))
-            ) {
-                return { 'Mask error': true };
-            }
-            if (this._maskValue.indexOf('*') === -1 || this._maskValue.indexOf('?') === -1) {
-                const length: number = this._maskService.dropSpecialCharacters
-                    ? this._maskValue.length - this._maskService.checkSpecialCharAmount(this._maskValue) - counterOfOpt
-                    : this._maskValue.length - counterOfOpt;
-                if (value.toString().length !== length) {
-                    return { 'Mask error': true };
-                }
-            }
-        }
+      }
+      if (
+        this._maskValue.indexOf("*") === 1 ||
+        this._maskValue.indexOf("?") === 1 ||
+        this._maskValue.indexOf("{") === 1
+      ) {
         return null;
-    }
-
-    @HostListener('input', ['$event'])
-    public onInput(e: KeyboardEvent): void {
-        const el: HTMLInputElement = e.target as HTMLInputElement;
-        this._inputValue = el.value;
-        if (!this._maskValue) {
-            this.onChange(el.value);
-            return;
+      } else if (
+        (this._maskValue.indexOf("*") > 1 &&
+          value.toString().length < this._maskValue.indexOf("*")) ||
+        (this._maskValue.indexOf("?") > 1 &&
+          value.toString().length < this._maskValue.indexOf("?"))
+      ) {
+        return { "Mask error": true };
+      }
+      if (
+        this._maskValue.indexOf("*") === -1 ||
+        this._maskValue.indexOf("?") === -1
+      ) {
+        const length: number = this._maskService.dropSpecialCharacters
+          ? this._maskValue.length -
+            this._maskService.checkSpecialCharAmount(this._maskValue) -
+            counterOfOpt
+          : this._maskValue.length - counterOfOpt;
+        if (value.toString().length !== length) {
+          return { "Mask error": true };
         }
-        const position: number =
-            el.selectionStart === 1
-                ? (el.selectionStart as number) + this._maskService.prefix.length
-                : (el.selectionStart as number);
-        let caretShift: number = 0;
-        let backspaceShift: boolean = false;
-        this._maskService.applyValueChanges(position, (shift: number, _backspaceShift: boolean) => {
-            caretShift = shift;
-            backspaceShift = _backspaceShift;
-        });
-        // only set the selection if the element is active
-        if (this.document.activeElement !== el) {
-            return;
-        }
-        this._position = this._position === 1 && this._inputValue.length === 1 ? null : this._position;
-        el.selectionStart = el.selectionEnd =
-            this._position !== null
-                ? this._position
-                : position +
-                // tslint:disable-next-line
-                (this._code === 'Backspace' && !backspaceShift ? 0 : caretShift);
-        this._position = null;
+      }
     }
+    return null;
+  }
 
-    @HostListener('blur')
-    public onBlur(): void {
-        this._maskService.clearIfNotMatchFn();
-        this.onTouch();
+  @HostListener("input", ["$event"])
+  public onInput(e: KeyboardEvent): void {
+    const el: HTMLInputElement = e.target as HTMLInputElement;
+    this._inputValue = el.value;
+    if (!this._maskValue) {
+      this.onChange(el.value);
+      return;
     }
+    const position: number =
+      el.selectionStart === 1
+        ? (el.selectionStart as number) + this._maskService.prefix.length
+        : (el.selectionStart as number);
+    let caretShift: number = 0;
+    let backspaceShift: boolean = false;
+    this._maskService.applyValueChanges(
+      position,
+      (shift: number, _backspaceShift: boolean) => {
+        caretShift = shift;
+        backspaceShift = _backspaceShift;
+      }
+    );
+    // only set the selection if the element is active
+    if (this.document.activeElement !== el) {
+      return;
+    }
+    this._position =
+      this._position === 1 && this._inputValue.length === 1
+        ? null
+        : this._position;
+    el.selectionStart = el.selectionEnd =
+      this._position !== null
+        ? this._position
+        : position +
+          // tslint:disable-next-line
+          (this._code === "Backspace" && !backspaceShift ? 0 : caretShift);
+    this._position = null;
+  }
 
-    @HostListener('click', ['$event'])
-    public onFocus(e: MouseEvent | KeyboardEvent): void {
-        const el: HTMLInputElement = e.target as HTMLInputElement;
-        const posStart: number = 0;
-        const posEnd: number = 0;
+  @HostListener("blur")
+  public onBlur(): void {
+    this._maskService.clearIfNotMatchFn();
+    this.onTouch();
+  }
+
+  @HostListener("click", ["$event"])
+  public onFocus(e: MouseEvent | KeyboardEvent): void {
+    const el: HTMLInputElement = e.target as HTMLInputElement;
+    const posStart: number = 0;
+    const posEnd: number = 0;
+    if (
+      el !== null &&
+      el.selectionStart !== null &&
+      el.selectionStart === el.selectionEnd &&
+      el.selectionStart > this._maskService.prefix.length &&
+      // tslint:disable-next-line
+      (e as any).keyCode !== 38
+    )
+      if (this._maskService.showMaskTyped) {
+        // ) {
+        //     return;
+        // }
+        this._maskService.maskIsShown = this._maskService.showMaskInInput();
         if (
-            el !== null &&
-            el.selectionStart !== null &&
-            el.selectionStart === el.selectionEnd &&
-            el.selectionStart > this._maskService.prefix.length &&
-            // tslint:disable-next-line
-            (e as any).keyCode !== 38
-        )
-            if (this._maskService.showMaskTyped) {
-                // ) {
-                //     return;
-                // }
-                this._maskService.maskIsShown = this._maskService.showMaskInInput();
-                if (el.setSelectionRange && this._maskService.prefix + this._maskService.maskIsShown === el.value) {
-                    el.focus();
-                    el.setSelectionRange(posStart, posEnd);
-                }
-            }
-        el.value =
-            !el.value || el.value === this._maskService.prefix
-                ? this._maskService.prefix + this._maskService.maskIsShown
-                : el.value;
-        /** fix of cursor position with prefix when mouse click occur */
-        if (((el.selectionStart as number) || (el.selectionEnd as number)) <= this._maskService.prefix.length) {
-            el.selectionStart = this._maskService.prefix.length;
-            return;
+          el.setSelectionRange &&
+          this._maskService.prefix + this._maskService.maskIsShown === el.value
+        ) {
+          el.focus();
+          el.setSelectionRange(posStart, posEnd);
         }
+      }
+    el.value =
+      !el.value || el.value === this._maskService.prefix
+        ? this._maskService.prefix + this._maskService.maskIsShown
+        : el.value;
+    /** fix of cursor position with prefix when mouse click occur */
+    if (
+      ((el.selectionStart as number) || (el.selectionEnd as number)) <=
+      this._maskService.prefix.length
+    ) {
+      el.selectionStart = this._maskService.prefix.length;
+      return;
     }
+  }
 
-    @HostListener('keydown', ['$event'])
-    public a(e: KeyboardEvent): void {
-        this._code = e.code;
-        const el: HTMLInputElement = e.target as HTMLInputElement;
-        this._maskService.selStart = el.selectionStart;
-        this._maskService.selEnd = el.selectionEnd;
-        if (e.keyCode === 38) {
-            e.preventDefault();
-        }
-        if (e.keyCode === 37 || e.keyCode === 8) {
-            if (e.keyCode === 37) {
-                el.selectionStart = (el.selectionEnd as number) - 1;
-            }
-            if (e.keyCode === 8 && el.value.length === 0) {
-                el.selectionStart = el.selectionEnd;
-            }
-            if (
-                (el.selectionStart as number) <= this._maskService.prefix.length &&
-                (el.selectionEnd as number) <= this._maskService.prefix.length
-            ) {
-                e.preventDefault();
-            }
-            const cursorStart: number | null = el.selectionStart;
-            // this.onFocus(e);
-            if (e.keyCode === 8 && cursorStart === 0 && el.selectionEnd === el.value.length && el.value.length !== 0) {
-                this._position = this._maskService.prefix ? this._maskService.prefix.length : 0;
-                this._maskService.applyMask(this._maskService.prefix, this._maskService.maskExpression, this._position);
-            }
-        }
+  @HostListener("keydown", ["$event"])
+  public a(e: KeyboardEvent): void {
+    this._code = e.code;
+    const el: HTMLInputElement = e.target as HTMLInputElement;
+    this._maskService.selStart = el.selectionStart;
+    this._maskService.selEnd = el.selectionEnd;
+    if (e.keyCode === 38) {
+      e.preventDefault();
     }
-
-    @HostListener('paste')
-    public onPaste(): void {
-        this._position = Number.MAX_SAFE_INTEGER;
+    if (e.keyCode === 37 || e.keyCode === 8) {
+      if (e.keyCode === 37) {
+        el.selectionStart = (el.selectionEnd as number) - 1;
+      }
+      if (e.keyCode === 8 && el.value.length === 0) {
+        el.selectionStart = el.selectionEnd;
+      }
+      if (
+        (el.selectionStart as number) <= this._maskService.prefix.length &&
+        (el.selectionEnd as number) <= this._maskService.prefix.length
+      ) {
+        e.preventDefault();
+      }
+      const cursorStart: number | null = el.selectionStart;
+      // this.onFocus(e);
+      if (
+        e.keyCode === 8 &&
+        cursorStart === 0 &&
+        el.selectionEnd === el.value.length &&
+        el.value.length !== 0
+      ) {
+        this._position = this._maskService.prefix
+          ? this._maskService.prefix.length
+          : 0;
+        this._maskService.applyMask(
+          this._maskService.prefix,
+          this._maskService.maskExpression,
+          this._position
+        );
+      }
     }
+  }
 
-    /** It writes the value in the input */
-    public async writeValue(inputValue: string): Promise<void> {
-        if (inputValue === undefined) {
-            inputValue = '';
-        }
-        if (typeof inputValue === 'number') {
-            inputValue = String(inputValue);
-            inputValue = this._maskValue.startsWith('dot_separator') ? inputValue.replace('.', ',') : inputValue;
-            this._maskService.isNumberValue = true;
-        }
-        (inputValue && this._maskService.maskExpression) ||
-            (this._maskService.maskExpression && (this._maskService.prefix || this._maskService.showMaskTyped))
-            ? (this._maskService.formElementProperty = [
-                'value',
-                this._maskService.applyMask(inputValue, this._maskService.maskExpression),
-            ])
-            : (this._maskService.formElementProperty = ['value', inputValue]);
-        this._inputValue = inputValue;
+  @HostListener("paste")
+  public onPaste(): void {
+    this._position = Number.MAX_SAFE_INTEGER;
+  }
+
+  /** It writes the value in the input */
+  public async writeValue(inputValue: string): Promise<void> {
+    if (inputValue === undefined) {
+      inputValue = "";
     }
+    if (typeof inputValue === "number") {
+      inputValue = String(inputValue);
+      inputValue = this._maskValue.indexOf("dot_separator")
+        ? inputValue.replace(".", ",")
+        : inputValue;
+      this._maskService.isNumberValue = true;
+    }
+    (inputValue && this._maskService.maskExpression) ||
+    (this._maskService.maskExpression &&
+      (this._maskService.prefix || this._maskService.showMaskTyped))
+      ? (this._maskService.formElementProperty = [
+          "value",
+          this._maskService.applyMask(
+            inputValue,
+            this._maskService.maskExpression
+          )
+        ])
+      : (this._maskService.formElementProperty = ["value", inputValue]);
+    this._inputValue = inputValue;
+    await this._applyMask();
+  }
 
-    /*  @HostListener('min', ['$event'])
+  /*  @HostListener('min', ['$event'])
       public onMin(e: any): void {
           console.log('on min', e);
       } */
 
+  // tslint:disable-next-line
+  public registerOnChange(fn: any): void {
+    this.onChange = fn;
+    this._maskService.onChange = this.onChange;
+  }
 
-    // tslint:disable-next-line
-    public registerOnChange(fn: any): void {
-        this.onChange = fn;
-        this._maskService.onChange = this.onChange;
-    }
+  // tslint:disable-next-line
+  public registerOnTouched(fn: any): void {
+    this.onTouch = fn;
+  }
 
-    // tslint:disable-next-line
-    public registerOnTouched(fn: any): void {
-        this.onTouch = fn;
-    }
+  /** It disables the input element */
+  public setDisabledState(isDisabled: boolean): void {
+    this._maskService.formElementProperty = ["disabled", isDisabled];
+  }
 
-    /** It disables the input element */
-    public setDisabledState(isDisabled: boolean): void {
-        this._maskService.formElementProperty = ['disabled', isDisabled];
-    }
+  private _repeatPatternSymbols(maskExp: string): string {
+    return (
+      (maskExp.match(/{[0-9]+}/) &&
+        maskExp
+          .split("")
+          .reduce((accum: string, currval: string, index: number): string => {
+            this._start = currval === "{" ? index : this._start;
 
-    private _repeatPatternSymbols(maskExp: string): string {
-        return (
-            (maskExp.match(/{[0-9]+}/) &&
-                maskExp.split('').reduce((accum: string, currval: string, index: number): string => {
-                    this._start = currval === '{' ? index : this._start;
-
-                    if (currval !== '}') {
-                        return this._maskService._findSpecialChar(currval) ? accum + currval : accum;
-                    }
-                    this._end = index;
-                    const repeatNumber: number = Number(maskExp.slice(this._start + 1, this._end));
-                    const repaceWith: string = new Array(repeatNumber + 1).join(maskExp[this._start - 1]);
-                    return accum + repaceWith;
-                }, '')) ||
-            maskExp
-        );
-    }
-    // tslint:disable-next-line:no-any
-    private _applyMask(): any {
-        this._maskService.maskExpression = this._repeatPatternSymbols(this._maskValue || '');
-        this._maskService.formElementProperty = [
-            'value',
-            this._maskService.applyMask(this._inputValue, this._maskService.maskExpression),
-        ];
-    }
+            if (currval !== "}") {
+              return this._maskService._findSpecialChar(currval)
+                ? accum + currval
+                : accum;
+            }
+            this._end = index;
+            const repeatNumber: number = Number(
+              maskExp.slice(this._start + 1, this._end)
+            );
+            const repaceWith: string = new Array(repeatNumber + 1).join(
+              maskExp[this._start - 1]
+            );
+            return accum + repaceWith;
+          }, "")) ||
+      maskExp
+    );
+  }
+  // tslint:disable-next-line:no-any
+  private _applyMask(): any {
+    this._maskService.maskExpression = this._repeatPatternSymbols(
+      this._maskValue || ""
+    );
+    this._maskService.formElementProperty = [
+      "value",
+      this._maskService.applyMask(
+        this._inputValue,
+        this._maskService.maskExpression
+      )
+    ];
+  }
 }
