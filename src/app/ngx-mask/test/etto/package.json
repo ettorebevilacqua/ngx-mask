@@ -1,0 +1,21 @@
+{
+  "name": "hellojasmine",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "jasmine-ts --config=jasmine.json",
+    "testWithCoverage": "nyc -r lcov -e .ts -x \"tests/*.test.ts\" jasmine-ts --config=jasmine.json && nyc report"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/jasmine": "^3.3.12",
+    "jasmine": "^3.4.0",
+    "jasmine-ts": "^0.3.0",
+    "nyc": "^13.3.0",
+    "ts-node": "^8.1.0",
+    "typescript": "^3.4.4"
+  }
+}

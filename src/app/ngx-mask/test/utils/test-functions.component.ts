@@ -2,12 +2,15 @@
 export function typeTest(inputValue: string, fixture: any): string {
     fixture.detectChanges();
 
-    fixture.nativeElement.querySelector('input').value = inputValue;
+    if (fixture.nativeElement.querySelector('input')) {
+        fixture.nativeElement.querySelector('input').value = inputValue || '';
 
-    fixture.nativeElement.querySelector('input').dispatchEvent(new Event('input'));
 
-    fixture.detectChanges();
-    return fixture.nativeElement.querySelector('input').value;
+        fixture.nativeElement.querySelector('input').dispatchEvent(new Event('input'));
+
+        fixture.detectChanges();
+        return fixture.nativeElement.querySelector('input').value;
+    } else {return ''};
 }
 
 // tslint:disable-next-line:no-any

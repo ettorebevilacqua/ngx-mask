@@ -72,8 +72,8 @@ export class MaskDirective implements ControlValueAccessor, OnChanges {
   private _end!: number;
   private _code!: string;
   // tslint:disable-next-line
-  public onChange = (_: any) => {};
-  public onTouch = () => {};
+  public onChange = (_: any) => { };
+  public onTouch = () => { };
 
   public constructor(
     // tslint:disable-next-line
@@ -249,8 +249,8 @@ export class MaskDirective implements ControlValueAccessor, OnChanges {
       ) {
         const length: number = this._maskService.dropSpecialCharacters
           ? this._maskValue.length -
-            this._maskService.checkSpecialCharAmount(this._maskValue) -
-            counterOfOpt
+          this._maskService.checkSpecialCharAmount(this._maskValue) -
+          counterOfOpt
           : this._maskValue.length - counterOfOpt;
         if (value.toString().length !== length) {
           return { "Mask error": true };
@@ -258,6 +258,30 @@ export class MaskDirective implements ControlValueAccessor, OnChanges {
       }
     }
     return null;
+  }
+
+  /* public setSelectPosition(el: HTMLInputElement){
+        // only set the selection if the element is active
+        if (this.document.activeElement !== el  {
+          return;
+        }
+        this._code === "Backspace";
+        const position = el.selectionStart;
+        const  inputLen = this._inputValue.length;
+        const  sufixLen: boolean = this._maskService.sufix ? this._maskService.sufix.length : 0;
+        const  prefixLen: boolean = this._maskService.prefix ? this._maskService.prefix.length : 0;
+        
+        let newPosition = position <= prefixLen ? prefixLen : position;
+        newPosition = position >= sufixLen ? sufixLen : position;
+
+        (this._inputValue.length + this._maskService.prefix.length - this._maskService.sufix.length)
+    //   ? this._inputValue.length + this._maskService.prefix.length - this._maskService.sufix.length
+        
+  } */
+
+  @HostListener('window:keyup', ['$event'])
+  public keyEventUp(event: KeyboardEvent) {
+
   }
 
   @HostListener("input", ["$event"])
@@ -268,10 +292,20 @@ export class MaskDirective implements ControlValueAccessor, OnChanges {
       this.onChange(el.value);
       return;
     }
-    const position: number =
-      el.selectionStart === 1
-        ? (el.selectionStart as number) + this._maskService.prefix.length
-        : (el.selectionStart as number);
+    let position: number = el.selectionStart === 1
+      ? (el.selectionStart as number) + this._maskService.prefix.length
+      : (el.selectionStart as number);
+
+    const rgxFindLastNumber: RegExp = /([., \d+])(?!.*\d)/g;
+
+    rgxFindLastNumber.exec(this._inputValue);
+    const lastNumberPosition: number = rgxFindLastNumber.lastIndex;
+
+   // TODO : solo se
+    position = position >= el.value.length ? lastNumberPosition : position;
+    //  (this._inputValue.length + this._maskService.prefix.length - this._maskService.sufix.length)
+    //   ? this._inputValue.length + this._maskService.prefix.length - this._maskService.sufix.length : position;
+
     let caretShift: number = 0;
     let backspaceShift: boolean = false;
     this._maskService.applyValueChanges(
@@ -293,8 +327,8 @@ export class MaskDirective implements ControlValueAccessor, OnChanges {
       this._position !== null
         ? this._position
         : position +
-          // tslint:disable-next-line
-          (this._code === "Backspace" && !backspaceShift ? 0 : caretShift);
+        // tslint:disable-next-line
+        (this._code === "Backspace" && !backspaceShift ? 0 : caretShift);
     this._position = null;
   }
 
@@ -404,15 +438,15 @@ export class MaskDirective implements ControlValueAccessor, OnChanges {
       this._maskService.isNumberValue = true;
     }
     (inputValue && this._maskService.maskExpression) ||
-    (this._maskService.maskExpression &&
-      (this._maskService.prefix || this._maskService.showMaskTyped))
+      (this._maskService.maskExpression &&
+        (this._maskService.prefix || this._maskService.showMaskTyped))
       ? (this._maskService.formElementProperty = [
-          "value",
-          this._maskService.applyMask(
-            inputValue,
-            this._maskService.maskExpression
-          )
-        ])
+        "value",
+        this._maskService.applyMask(
+          inputValue,
+          this._maskService.maskExpression
+        )
+      ])
       : (this._maskService.formElementProperty = ["value", inputValue]);
     this._inputValue = inputValue;
     await this._applyMask();
